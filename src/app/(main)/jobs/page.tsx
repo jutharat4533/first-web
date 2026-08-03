@@ -1,0 +1,344 @@
+"use client";
+
+import { JobPost, JobStatus } from "@/@types/types";
+import BottomSheet from "@/components/features/jobs/BottomSheet";
+import JobDetailSheet, {
+  STATUS_COLOR,
+  STATUS_LABEL,
+} from "@/components/features/jobs/JobDetailSheet";
+import JobFormSheet from "@/components/features/jobs/JobFormSheet";
+import { useJobStore } from "@/store/useJobStore";
+import { EGG, LIME, P, ROSE, STEEL } from "@/styles/theme";
+import {
+  AlertCircle,
+  Check,
+  ChevronRight,
+  Edit2,
+  MapPin,
+  Plus,
+  Search,
+  Stethoscope,
+  Trash2,
+  X,
+  Zap,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+
+// 💡 หมายเหตุ: ใน Next.js หากใส่ "use client" แล้ว จะไม่สามารถประกาศ export const metadata ตรงนี้ได้โดยตรง
+// (ถ้าต้องการใส่ Title แนะนำให้ย้าย Metadata ไปไว้ที่ Layout แม่ หรือสร้างไฟล์ layout.tsx ครอบแทน)
+
+export default function JobsPage() {
+  const { currentUser, jobs, addJob, updateJob, deleteJob, applyJob } =
+    useJobStore();
+  const isAdmin = currentUser?.role === "admin";
+
+  const [query, setQuery] = useState("");
+  const [filterHighlighted, setFilterHighlighted] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<JobStatus | "ALL">("ALL");
+  const [detailJob, setDetailJob] = useState<JobPost | null>(null);
+  const [editJob, setEditJob] = useState<JobPost | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  const safeJobs = useMemo(() => (Array.isArray(jobs) ? jobs : []), [jobs]);
+
+  const filtered = useMemo(
+    () =>
+      safeJobs.filter((j) => {
+        const q = query.toLowerCase();
+        const matchQ =
+          !q ||
+          j.location.toLowerCase().includes(q) ||
+          j.aboutWard?.toLowerCase().includes(q);
+        const matchH = !filterHighlighted || j.isHighlighted;
+        const matchS = filterStatus === "ALL" || j.status === filterStatus;
+        return matchQ && matchH && matchS;
+      }),
+    [safeJobs, query, filterHighlighted, filterStatus],
+  );
+
+  return (
+    <div className="flex flex-col h-full relative">
+      {/* Header */}
+      <div className="px-5 pt-5 pb-4 shrink-0" style={{ backgroundColor: P }}>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h1 className="text-xl font-bold text-white">ตลาดงาน</h1>
+            <p
+              className="text-xs mt-0.5"
+              style={{ color: "rgba(255,255,255,0.6)" }}
+            >
+              {safeJobs.filter((j) => j.status === "OPEN").length}{" "}
+              ตำแหน่งเปิดรับอยู่
+            </p>
+          </div>
+          {isAdmin && (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-semibold text-xs"
+              style={{ backgroundColor: ROSE, color: "white" }}
+            >
+              <Plus size={14} />
+              ลงประกาศ
+            </button>
+          )}
+        </div>
+        {/* Search */}
+        <div
+          className="flex items-center gap-2 px-4 py-2.5 rounded-2xl"
+          style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+        >
+          <Search size={16} color="rgba(255,255,255,0.6)" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="ค้นหา รพ. หรือวอร์ด..."
+            className="flex-1 bg-transparent outline-none text-sm text-white placeholder-white/50"
+          />
+          {query && (
+            <button onClick={() => setQuery("")}>
+              <X size={14} color="rgba(255,255,255,0.6)" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div
+        className="px-4 py-3 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0 border-b"
+        style={{ borderColor: "rgba(3,29,68,0.08)", backgroundColor: "white" }}
+      >
+        {(["ALL", "OPEN", "FULL", "CLOSED"] as const).map((s) => (
+          <button
+            key={s}
+            onClick={() => setFilterStatus(s)}
+            className="shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-all"
+            style={{
+              borderColor: filterStatus === s ? P : "rgba(3,29,68,0.12)",
+              backgroundColor: filterStatus === s ? P : "#f8fafc",
+              color: filterStatus === s ? "white" : P,
+            }}
+          >
+            {s === "ALL" ? "ทั้งหมด" : STATUS_LABEL[s]}
+          </button>
+        ))}
+        <button
+          onClick={() => setFilterHighlighted(!filterHighlighted)}
+          className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-all"
+          style={{
+            borderColor: filterHighlighted ? ROSE : "rgba(3,29,68,0.12)",
+            backgroundColor: filterHighlighted ? ROSE + "10" : "#f8fafc",
+            color: filterHighlighted ? ROSE : P,
+          }}
+        >
+          <Zap size={12} />
+          ด่วน
+        </button>
+      </div>
+
+      {/* Job list */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-6">
+        {filtered.length === 0 && (
+          <div
+            className="rounded-2xl px-4 py-8 text-center"
+            style={{ backgroundColor: EGG }}
+          >
+            <AlertCircle
+              size={32}
+              style={{ color: "#5a7a99", margin: "0 auto 8px" }}
+            />
+            <p className="text-sm font-semibold" style={{ color: P }}>
+              ไม่พบประกาศงาน
+            </p>
+            <p className="text-xs mt-1" style={{ color: "#5a7a99" }}>
+              ลองเปลี่ยนคำค้นหาหรือตัวกรอง
+            </p>
+          </div>
+        )}
+        {filtered.map((job) => {
+          const { bg, text } = STATUS_COLOR[job.status];
+          const jobIdNum = Number(job.id);
+          const applied = currentUser?.appliedJobs?.includes(jobIdNum) ?? false;
+          const canApply = job.status === "OPEN" && !applied;
+
+          return (
+            <div
+              key={job.id}
+              className="rounded-2xl shadow-sm overflow-hidden"
+              style={{ backgroundColor: EGG }}
+            >
+              {job.isHighlighted && (
+                <div
+                  className="px-4 py-1.5 flex items-center gap-1.5"
+                  style={{
+                    background: `linear-gradient(90deg, ${ROSE}22 0%, transparent 100%)`,
+                  }}
+                >
+                  <Zap size={11} style={{ color: ROSE }} />
+                  <span
+                    className="text-[10px] font-bold"
+                    style={{ color: ROSE }}
+                  >
+                    ด่วน
+                  </span>
+                </div>
+              )}
+              <div className="px-4 pb-4 pt-2">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <MapPin size={12} style={{ color: STEEL }} />
+                      <p
+                        className="text-sm font-bold truncate"
+                        style={{ color: P }}
+                      >
+                        {job.location}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Stethoscope size={12} style={{ color: "#5a7a99" }} />
+                      <p
+                        className="text-xs truncate"
+                        style={{ color: "#5a7a99" }}
+                      >
+                        {job.aboutWard}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className="text-xs font-bold px-2.5 py-1 rounded-full shrink-0"
+                    style={{ backgroundColor: bg, color: text }}
+                  >
+                    {STATUS_LABEL[job.status]}
+                  </span>
+                </div>
+
+                <p
+                  className="text-xs leading-relaxed line-clamp-2 mb-3"
+                  style={{ color: "#5a7a99" }}
+                >
+                  {job.description}
+                </p>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <p
+                        className="text-base font-bold"
+                        style={{ color: ROSE }}
+                      >
+                        ฿{job.compensation.toLocaleString("th-TH")}
+                      </p>
+                      <p className="text-[10px]" style={{ color: "#5a7a99" }}>
+                        ต่อเวร
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold" style={{ color: STEEL }}>
+                        {job.applicants?.length ?? 0}/{job.maxApplicants}
+                      </p>
+                      <p className="text-[10px]" style={{ color: "#5a7a99" }}>
+                        ผู้สมัคร
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    {isAdmin && (
+                      <>
+                        <button
+                          onClick={() => setEditJob(job)}
+                          className="p-2 rounded-xl"
+                          style={{
+                            backgroundColor: STEEL + "15",
+                            color: STEEL,
+                          }}
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button
+                          onClick={() => deleteJob(Number(job.id))}
+                          className="p-2 rounded-xl"
+                          style={{ backgroundColor: ROSE + "15", color: ROSE }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => setDetailJob(job)}
+                      className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                      style={{
+                        backgroundColor: canApply
+                          ? ROSE
+                          : applied
+                            ? LIME
+                            : "#f0f0f0",
+                        color: canApply ? "white" : applied ? P : "#888",
+                      }}
+                    >
+                      {applied ? (
+                        <>
+                          <Check size={13} />
+                          สมัครแล้ว
+                        </>
+                      ) : canApply ? (
+                        "สมัคร"
+                      ) : (
+                        <>
+                          <ChevronRight size={13} />
+                          ดูรายละเอียด
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Detail sheet */}
+      {detailJob && (
+        <JobDetailSheet
+          job={detailJob}
+          onClose={() => setDetailJob(null)}
+          onApply={() => applyJob(Number(detailJob.id))}
+          applied={
+            currentUser?.appliedJobs?.includes(Number(detailJob.id)) ?? false
+          }
+          isAdmin={isAdmin}
+          onEdit={() => {
+            setEditJob(detailJob);
+            setDetailJob(null);
+          }}
+          onDelete={() => deleteJob(Number(detailJob.id))}
+        />
+      )}
+
+      {/* Add form */}
+      {showAddForm && (
+        <BottomSheet
+          title="ลงประกาศงานใหม่"
+          onClose={() => setShowAddForm(false)}
+        >
+          <JobFormSheet
+            onSave={(j) => addJob(j)}
+            onClose={() => setShowAddForm(false)}
+          />
+        </BottomSheet>
+      )}
+
+      {/* Edit form */}
+      {editJob && (
+        <BottomSheet title="แก้ไขประกาศงาน" onClose={() => setEditJob(null)}>
+          <JobFormSheet
+            initial={editJob}
+            onSave={(j) => updateJob(Number(editJob.id), j)}
+            onClose={() => setEditJob(null)}
+          />
+        </BottomSheet>
+      )}
+    </div>
+  );
+}
