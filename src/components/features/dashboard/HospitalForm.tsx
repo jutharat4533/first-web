@@ -3,29 +3,39 @@
 import { P, ROSE, STEEL } from "@/styles/theme";
 import React, { useState } from "react";
 import { Check } from "lucide-react";
+import { toast } from "sonner";
 import {
   Hospital,
   SHIFT_SLOTS,
   SHIFT_TYPE_LABEL,
+  ShiftCategory,
   ShiftSlot,
-  ShiftType,
   SLOT_LABEL,
 } from "@/@types/types";
+import { HospitalInput } from "@/store/useWorkplaceStore";
+import { validateRequired } from "@/lib/validate-required";
 
 interface HospitalFormProps {
   initial?: Hospital;
-  onSave: (h: Omit<Hospital, "id" | "userId">) => void;
+  onSave: (h: HospitalInput) => Promise<void> | void;
   onClose: () => void;
 }
 
 export function HospitalForm({ initial, onSave, onClose }: HospitalFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
-  const [type, setType] = useState<ShiftType>(
-    initial?.shiftType ?? "three_shift",
+  const [type, setType] = useState<ShiftCategory>(
+    initial?.shiftCategory ?? "THREE_SHIFT",
+  );
+  const [baseSalary, setBaseSalary] = useState(
+    String(initial?.baseSalary ?? ""),
+  );
+  const [specialAllowance, setSpecialAllowance] = useState(
+    String(initial?.specialAllowance ?? ""),
   );
   const [rates, setRates] = useState<Partial<Record<ShiftSlot, number>>>(
     initial?.shiftRates ?? {},
   );
+  const [isSaving, setIsSaving] = useState(false);
 
   const slots = SHIFT_SLOTS[type];
 
@@ -35,14 +45,33 @@ export function HospitalForm({ initial, onSave, onClose }: HospitalFormProps) {
       [slot]: val === "" ? undefined : Number(val),
     }));
 
-  const handleSave = () => {
-    if (!name.trim()) return;
+  const handleSave = async () => {
+    const error = validateRequired({
+      ชื่อโรงพยาบาล: name.trim().length > 0,
+    });
+    if (error) {
+      toast.error(error);
+      return;
+    }
+
     const r: Partial<Record<ShiftSlot, number>> = {};
     slots.forEach((s) => {
       r[s] = rates[s] ?? 0;
     });
-    onSave({ name: name.trim(), shiftType: type, shiftRates: r });
-    onClose();
+
+    setIsSaving(true);
+    try {
+      await onSave({
+        name: name.trim(),
+        baseSalary: Number(baseSalary) || 0,
+        specialAllowance: Number(specialAllowance) || 0,
+        shiftCategory: type,
+        shiftRates: r,
+      });
+      onClose();
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -72,7 +101,7 @@ export function HospitalForm({ initial, onSave, onClose }: HospitalFormProps) {
           ประเภทกะงาน (Shift Type)
         </label>
         <div className="space-y-2">
-          {(["one_shift", "two_shift", "three_shift"] as ShiftType[]).map(
+          {(["ONE_SHIFT", "TWO_SHIFT", "THREE_SHIFT"] as ShiftCategory[]).map(
             (t) => (
               <button
                 key={t}
@@ -89,6 +118,44 @@ export function HospitalForm({ initial, onSave, onClose }: HospitalFormProps) {
               </button>
             ),
           )}
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <label className="text-xs font-semibold" style={{ color: "#5a7a99" }}>
+            เงินเดือนพื้นฐาน (บาท)
+          </label>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={baseSalary}
+            onChange={(e) => setBaseSalary(e.target.value)}
+            placeholder="0"
+            className="w-full px-4 py-3 rounded-2xl text-sm outline-none border-2"
+            style={{
+              borderColor: "rgba(3,29,68,0.12)",
+              backgroundColor: "#f8fafc",
+              color: P,
+            }}
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-semibold" style={{ color: "#5a7a99" }}>
+            ค่าตอบแทนพิเศษ (บาท)
+          </label>
+          <input
+            type="number"
+            inputMode="numeric"
+            value={specialAllowance}
+            onChange={(e) => setSpecialAllowance(e.target.value)}
+            placeholder="0"
+            className="w-full px-4 py-3 rounded-2xl text-sm outline-none border-2"
+            style={{
+              borderColor: "rgba(3,29,68,0.12)",
+              backgroundColor: "#f8fafc",
+              color: P,
+            }}
+          />
         </div>
       </div>
       <div className="space-y-2">
@@ -128,10 +195,15 @@ export function HospitalForm({ initial, onSave, onClose }: HospitalFormProps) {
       </div>
       <button
         onClick={handleSave}
-        className="w-full py-3.5 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2"
-        style={{ backgroundColor: ROSE, boxShadow: `0 4px 16px ${ROSE}44` }}
+        disabled={isSaving}
+        className="w-full py-3.5 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-opacity"
+        style={{
+          backgroundColor: ROSE,
+          boxShadow: `0 4px 16px ${ROSE}44`,
+          opacity: isSaving ? 0.6 : 1,
+        }}
       >
-        <Check size={18} /> บันทึกข้อมูล รพ.
+        <Check size={18} /> {isSaving ? "กำลังบันทึก..." : "บันทึกข้อมูล รพ."}
       </button>
     </>
   );

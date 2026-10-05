@@ -76,7 +76,7 @@ export default function HospComboBox({
                 className="text-xs px-2 py-0.5 rounded-full font-semibold"
                 style={{ backgroundColor: STEEL + "15", color: STEEL }}
               >
-                {SHIFT_TYPE_LABEL[h.shiftType]}
+                {SHIFT_TYPE_LABEL[h.shiftCategory]}
               </span>
             </button>
           ))}

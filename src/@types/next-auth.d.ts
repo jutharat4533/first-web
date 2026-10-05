@@ -8,6 +8,11 @@ declare module "next-auth" {
     lastName?: string;
     access_token?: string;
     avatarUrl?: string | null;
+    role?: "ADMIN" | "USER";
+  }
+
+  interface Session {
+    user: User;
   }
 }
 
@@ -18,5 +23,6 @@ declare module "next-auth/jwt" {
     lastName?: string;
     access_token?: string;
     avatarUrl?: string | null;
+    role?: "ADMIN" | "USER";
   }
 }

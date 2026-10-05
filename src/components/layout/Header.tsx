@@ -1,9 +1,18 @@
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { P } from "@/styles/theme";
-import { Bell, User } from "lucide-react";
+import { UserApi } from "@/lib/api/user.api";
+import { auth } from "@/lib/auth";
+import { P, ROSE, STEEL } from "@/styles/theme";
+import { Bell } from "lucide-react";
 import Image from "next/image";
+import { redirect } from "next/navigation";
 
-export default function Header() {
+export default async function Header() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  const profile = await UserApi.getProfile(session.user.id);
+
   return (
     <div className="flex justify-between items-center bg-foreground/5 px-6 py-4 ">
       <div className="flex flex-row gap-2">
@@ -17,10 +26,15 @@ export default function Header() {
       </div>
       <div className="flex flex-row gap-4 justify-between items-center">
         <Bell />
-        <Avatar className="flex flex-row gap-4 justify-between items-center">
-          <User />
-          <AvatarImage></AvatarImage>
-        </Avatar>
+
+        <div
+          className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg shrink-0"
+          style={{
+            background: `linear-gradient(135deg, ${ROSE} 0%, ${STEEL} 100%)`,
+          }}
+        >
+          {profile.firstName?.[0]?.toUpperCase() ?? "?"}
+        </div>
       </div>
     </div>
   );

@@ -5,7 +5,10 @@ export type ApiFetchOptions = Omit<RequestInit, "body"> & {
   token?: string;
 };
 
-const API_URL = process.env.API_URL ?? "http://localhost:10000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ??
+  process.env.API_URL ??
+  "http://localhost:10000";
 
 export async function apiFetch<T>(
   path: string,
@@ -34,7 +37,7 @@ export async function apiFetch<T>(
     body: newBody,
     headers: newHeaders,
   });
-
+  console.log("response", response);
   if (!response.ok) {
     const errorBody = await response.json();
     throw new ApiError(response.status, errorBody.message);

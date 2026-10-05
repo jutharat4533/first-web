@@ -1,6 +1,6 @@
 "use server";
 
-import { ErrorActionResult } from "@/lib/actions/auth/action.type";
+import { ErrorActionResult } from "@/lib/actions/action.type";
 import { ApiError } from "@/lib/api/api-error";
 import { AuthApi } from "@/lib/api/auth.api";
 import { signIn, signOut } from "@/lib/auth";

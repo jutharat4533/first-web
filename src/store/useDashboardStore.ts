@@ -1,171 +1,105 @@
+import { Deduction, SpecialIncome } from "@/@types/types";
+import { SpecialIncomeApi } from "@/lib/api/special-income.api";
+import { WorkplaceApi } from "@/lib/api/workplace.api";
+import { DeductionResponse } from "@/lib/api/workplace-types";
 import { create } from "zustand";
-import {
-  Hospital,
-  SpecialIncome,
-  Deduction,
-  ShiftRecord,
-  UserRole,
-} from "@/@types/types";
 
-interface UserProfile {
-  id: string;
-  name: string;
-  role: UserRole;
-  baseSalary: number;
+function fromDeductionApi(d: DeductionResponse): Deduction {
+  return {
+    id: d.id,
+    hospitalId: d.workplaceSettingId,
+    name: d.name,
+    amount: d.amount,
+    unit: d.isPercent ? "percent" : "baht",
+  };
 }
 
 interface DashboardState {
-  currentUser: UserProfile | null;
-  hospitals: Hospital[];
-  shifts: ShiftRecord[];
   specialIncomes: SpecialIncome[];
   deductions: Deduction[];
+  loading: boolean;
+  error: string | null;
 
-  // --- Actions ---
-  setCurrentUser: (user: UserProfile | null) => void;
-  updateBaseSalary: (newSalary: number) => void;
+  fetchDashboardData: () => Promise<void>;
 
-  getUserHospitals: () => Hospital[];
-  addHospital: (newHosp: Omit<Hospital, "id" | "userId">) => Hospital;
-  updateHospital: (id: string, updatedData: Partial<Hospital>) => void;
-  deleteHospital: (id: string) => void;
-
-  getUserShifts: () => ShiftRecord[];
-
-  getUserSpecialIncomes: () => SpecialIncome[];
-  addSpecialIncome: (item: Omit<SpecialIncome, "id" | "userId">) => void;
+  addSpecialIncome: (item: { name: string; amount: number }) => Promise<void>;
   updateSpecialIncome: (
-    id: string,
-    updatedData: Partial<SpecialIncome>,
-  ) => void;
-  deleteSpecialIncome: (id: string) => void;
+    id: number,
+    item: { name: string; amount: number },
+  ) => Promise<void>;
+  deleteSpecialIncome: (id: number) => Promise<void>;
 
-  getUserDeductions: () => Deduction[];
-  addDeduction: (item: Omit<Deduction, "id" | "userId">) => void;
-  updateDeduction: (id: string, updatedData: Partial<Deduction>) => void;
-  deleteDeduction: (id: string) => void;
+  addDeduction: (item: {
+    hospitalId: number;
+    name: string;
+    amount: number;
+    unit: "baht" | "percent";
+  }) => Promise<void>;
+  deleteDeduction: (id: number) => Promise<void>;
 }
 
-export const useDashboardStore = create<DashboardState>((set, get) => ({
-  // (Mock Data)
-  currentUser: {
-    id: "user-uuid-1234",
-    name: "Dr. Somchai",
-    role: "USER",
-    baseSalary: 25000,
-  },
-  hospitals: [
-    {
-      id: "hosp-1",
-      userId: "user-uuid-1234",
-      name: "รพ.สมิติเวช สุขุมวิท",
-      shiftCategory: "THREE_SHIFT",
-      shiftRates: { MORNING: 1200, EVENING: 1500, NIGHT: 1800 },
-    },
-  ],
-  shifts: [], // อาเรย์เก็บข้อมูลเวร
-  specialIncomes: [
-    { id: "si-1", userId: "user-uuid-1234", name: "ค่าพตส.", amount: 1500 },
-  ],
-  deductions: [
-    {
-      id: "d-1",
-      userId: "user-uuid-1234",
-      hospitalId: "hosp-1",
-      name: "หนี้สหกรณ์",
-      amount: 3000,
-      unit: "baht",
-    },
-  ],
+export const useDashboardStore = create<DashboardState>((set) => ({
+  specialIncomes: [],
+  deductions: [],
+  loading: false,
+  error: null,
 
-  // --- Implementation: User & Salary ---
-  setCurrentUser: (user) => set({ currentUser: user }),
-
-  updateBaseSalary: (newSalary) =>
-    set((state) => ({
-      currentUser: state.currentUser
-        ? { ...state.currentUser, baseSalary: newSalary }
-        : null,
-      baseSalary: newSalary,
-    })),
-
-  // --- Implementation: Hospitals ---
-  getUserHospitals: () => get().hospitals,
-
-  addHospital: (newHospData) => {
-    const newHospital: Hospital = {
-      id: `hosp-${Date.now()}`,
-      userId: "user-uuid-1234",
-      ...newHospData,
-    };
-    set((state) => ({ hospitals: [...state.hospitals, newHospital] }));
-    return newHospital;
+  fetchDashboardData: async () => {
+    set({ loading: true, error: null });
+    try {
+      const [specialIncomes, deductions] = await Promise.all([
+        SpecialIncomeApi.getSpecialIncomes(),
+        WorkplaceApi.getDeductions(),
+      ]);
+      set({
+        specialIncomes,
+        deductions: deductions.map(fromDeductionApi),
+        loading: false,
+      });
+    } catch (error) {
+      set({
+        error:
+          error instanceof Error ? error.message : "โหลดข้อมูลแดชบอร์ดไม่สำเร็จ",
+        loading: false,
+      });
+    }
   },
 
-  updateHospital: (id, updatedData) => {
-    set((state) => ({
-      hospitals: state.hospitals.map((h) =>
-        h.id === id ? { ...h, ...updatedData } : h,
-      ),
-    }));
+  addSpecialIncome: async (item) => {
+    const created = await SpecialIncomeApi.createSpecialIncome(item);
+    set((state) => ({ specialIncomes: [...state.specialIncomes, created] }));
   },
 
-  deleteHospital: (id) => {
-    set((state) => ({
-      hospitals: state.hospitals.filter((h) => h.id !== id),
-    }));
-  },
-
-  // --- Implementation: Shifts ---
-  getUserShifts: () => get().shifts,
-
-  // --- Implementation: Special Incomes ---
-  getUserSpecialIncomes: () => get().specialIncomes,
-
-  addSpecialIncome: (newItem) => {
-    const item: SpecialIncome = {
-      id: `si-${Date.now()}`,
-      userId: "user-uuid-1234",
-      ...newItem,
-    };
-    set((state) => ({ specialIncomes: [...state.specialIncomes, item] }));
-  },
-
-  updateSpecialIncome: (id, updatedData) => {
+  updateSpecialIncome: async (id, item) => {
+    const updated = await SpecialIncomeApi.updateSpecialIncome(id, item);
     set((state) => ({
       specialIncomes: state.specialIncomes.map((si) =>
-        si.id === id ? { ...si, ...updatedData } : si,
+        si.id === id ? updated : si,
       ),
     }));
   },
 
-  deleteSpecialIncome: (id) => {
+  deleteSpecialIncome: async (id) => {
+    await SpecialIncomeApi.deleteSpecialIncome(id);
     set((state) => ({
       specialIncomes: state.specialIncomes.filter((si) => si.id !== id),
     }));
   },
 
-  // --- Implementation: Deductions ---
-  getUserDeductions: () => get().deductions,
-
-  addDeduction: (newItem) => {
-    const item: Deduction = {
-      id: `d-${Date.now()}`,
-      userId: "user-uuid-1234",
-      ...newItem,
-    };
-    set((state) => ({ deductions: [...state.deductions, item] }));
-  },
-
-  updateDeduction: (id, updatedData) => {
+  addDeduction: async (item) => {
+    const created = await WorkplaceApi.createDeduction({
+      workplaceSettingId: item.hospitalId,
+      name: item.name,
+      amount: item.amount,
+      isPercent: item.unit === "percent",
+    });
     set((state) => ({
-      deductions: state.deductions.map((d) =>
-        d.id === id ? { ...d, ...updatedData } : d,
-      ),
+      deductions: [...state.deductions, fromDeductionApi(created)],
     }));
   },
 
-  deleteDeduction: (id) => {
+  deleteDeduction: async (id) => {
+    await WorkplaceApi.deleteDeduction(id);
     set((state) => ({
       deductions: state.deductions.filter((d) => d.id !== id),
     }));

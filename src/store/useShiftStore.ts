@@ -1,51 +1,108 @@
-import { Hospital, ShiftRecord } from "@/@types/types";
+import { Hospital, ShiftRecord, ShiftSlot } from "@/@types/types";
+import { ShiftsApi } from "@/lib/api/shifts.api";
+import { ShiftApiResponse } from "@/lib/api/shift-types";
+import { useWorkplaceStore } from "@/store/useWorkplaceStore";
 import { create } from "zustand";
 
-interface ShiftState {
-  hospitals: Hospital[];
-  shifts: ShiftRecord[];
-  getUserHospitals: () => Hospital[];
-  getUserShifts: () => ShiftRecord[];
-  addHospital: (newHosp: Omit<Hospital, "id">) => Hospital;
-  addShift: (newShift: Omit<ShiftRecord, "id">) => void;
-  updateShift: (id: string, updatedData: Partial<ShiftRecord>) => void;
-  deleteShift: (id: string) => void;
+function toDateString(iso: string) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate(),
+  ).padStart(2, "0")}`;
 }
 
-export const useShiftStore = create<ShiftState>((set, get) => ({
-  hospitals: [],
+function fromApi(shift: ShiftApiResponse): ShiftRecord {
+  return {
+    id: shift.id,
+    hospitalId: shift.workplaceSettingId ?? 0,
+    date: toDateString(shift.startTime),
+    startTime: shift.startTime,
+    endTime: shift.endTime,
+    shiftSlot: shift.shiftSlot ?? "SHIFT",
+    status: shift.status,
+  };
+}
+
+interface ShiftState {
+  shifts: ShiftRecord[];
+  loading: boolean;
+  error: string | null;
+  fetchShifts: () => Promise<void>;
+  addShift: (
+    hospitalId: number,
+    shiftSlot: ShiftSlot,
+    startTime: string,
+    endTime: string,
+  ) => Promise<void>;
+  updateShift: (
+    id: number,
+    hospitalId: number,
+    shiftSlot: ShiftSlot,
+    startTime: string,
+    endTime: string,
+  ) => Promise<void>;
+  deleteShift: (id: number) => Promise<void>;
+}
+
+function findHospital(hospitalId: number): Hospital {
+  const hospital = useWorkplaceStore
+    .getState()
+    .hospitals.find((h) => h.id === hospitalId);
+  if (!hospital) {
+    throw new Error("ไม่พบข้อมูลโรงพยาบาลของเวรนี้");
+  }
+  return hospital;
+}
+
+export const useShiftStore = create<ShiftState>((set) => ({
   shifts: [],
+  loading: false,
+  error: null,
 
-  getUserHospitals: () => get().hospitals,
-
-  getUserShifts: () => get().shifts,
-
-  addHospital: (newHospData) => {
-    const newHospital: Hospital = {
-      id: `hosp-${Date.now()}`,
-      ...newHospData,
-    };
-    set((state) => ({ hospitals: [...state.hospitals, newHospital] }));
-    return newHospital;
+  fetchShifts: async () => {
+    set({ loading: true, error: null });
+    try {
+      const shifts = await ShiftsApi.getShifts();
+      set({ shifts: shifts.map(fromApi), loading: false });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : "โหลดข้อมูลเวรไม่สำเร็จ",
+        loading: false,
+      });
+    }
   },
 
-  addShift: (newShiftData) => {
-    const newShift: ShiftRecord = {
-      id: `shift-${Date.now()}`,
-      ...newShiftData,
-    };
-    set((state) => ({ shifts: [...state.shifts, newShift] }));
+  addShift: async (hospitalId, shiftSlot, startTime, endTime) => {
+    findHospital(hospitalId);
+
+    const created = await ShiftsApi.createShift({
+      workplaceSettingId: hospitalId,
+      startTime,
+      endTime,
+      shiftSlot,
+      status: "ACTIVE",
+    });
+
+    set((state) => ({ shifts: [...state.shifts, fromApi(created)] }));
   },
 
-  updateShift: (id, updatedData) => {
+  updateShift: async (id, hospitalId, shiftSlot, startTime, endTime) => {
+    findHospital(hospitalId);
+
+    const updated = await ShiftsApi.updateShift(id, {
+      workplaceSettingId: hospitalId,
+      startTime,
+      endTime,
+      shiftSlot,
+    });
+
     set((state) => ({
-      shifts: state.shifts.map((s) =>
-        s.id === id ? { ...s, ...updatedData } : s,
-      ),
+      shifts: state.shifts.map((s) => (s.id === id ? fromApi(updated) : s)),
     }));
   },
 
-  deleteShift: (id) => {
+  deleteShift: async (id) => {
+    await ShiftsApi.deleteShift(id);
     set((state) => ({
       shifts: state.shifts.filter((s) => s.id !== id),
     }));

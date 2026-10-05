@@ -12,7 +12,7 @@ export default function HeaderAuth() {
         src="/pic.png"
         alt="logo"
         width={70}
-        height={12}
+        height={70}
         className="mb-2"
       />
       <h1 className="text-2xl font-bold mb-1" style={{ color: LIME }}>

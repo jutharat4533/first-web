@@ -27,6 +27,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
         token.lastName = user.lastName;
         token.access_token = user.access_token;
         token.avatarUrl = user.avatarUrl;
+        token.role = user.role;
       }
 
       if (trigger === "update") {
@@ -41,6 +42,7 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
       session.user.avatarUrl = token.avatarUrl;
       session.user.access_token = token.access_token;
       session.user.id = token.sub;
+      session.user.role = token.role;
 
       return session;
     },

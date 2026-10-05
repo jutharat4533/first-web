@@ -3,6 +3,7 @@ import "@/styles/font.css";
 import { cn } from "@/lib/utils";
 import { notoSans } from "@/styles/font";
 import { Metadata } from "next";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: {
@@ -21,7 +22,10 @@ export default function RootLayout({
       lang="en"
       className={cn("antialiased", "font-sans", notoSans.variable)}
     >
-      <body className="">{children}</body>
+      <body className="">
+        {children}
+        <Toaster position="top-center" richColors />
+      </body>
     </html>
   );
 }

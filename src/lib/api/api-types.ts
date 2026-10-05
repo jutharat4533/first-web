@@ -4,9 +4,9 @@ export type UserResponse = {
   firstName: string;
   lastName: string;
   dob: string;
-  gender: "MALE" | "FEMALE" | "OTHER";
+  gender: "MALE" | "FEMALE";
   avatarUrl: string | null;
-  coverUrl: string | null;
+  role: "ADMIN" | "USER";
   createdAt: string;
   updatedAt: string;
 };
@@ -16,15 +16,6 @@ export type LoginResponse = {
   user: UserResponse;
 };
 
-export type RelationshipStatus =
-  | "NONE"
-  | "FRIEND"
-  | "SELF"
-  | "REQUEST_SENT"
-  | "REQUEST_RECEIVED";
-
 export type UserProfileResponse = {
   user: UserResponse;
-  friends: UserResponse[];
-  relationshipStatus: RelationshipStatus;
 };
