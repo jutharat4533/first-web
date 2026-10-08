@@ -54,12 +54,14 @@ function findHospital(hospitalId: number): Hospital {
   return hospital;
 }
 
-export const useShiftStore = create<ShiftState>((set) => ({
+export const useShiftStore = create<ShiftState>((set, get) => ({
   shifts: [],
   loading: false,
   error: null,
 
   fetchShifts: async () => {
+    if (get().loading) return;
+
     set({ loading: true, error: null });
     try {
       const shifts = await ShiftsApi.getShifts();

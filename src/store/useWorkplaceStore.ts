@@ -55,6 +55,8 @@ export const useWorkplaceStore = create<WorkplaceState>((set, get) => ({
   error: null,
 
   fetchHospitals: async () => {
+    if (get().loading) return;
+
     set({ loading: true, error: null });
     try {
       const [workplaces, rates] = await Promise.all([
