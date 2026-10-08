@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell, Loader2 } from "lucide-react";
 import { SLOT_LABEL } from "@/@types/types";
 import { useShiftStore } from "@/store/useShiftStore";
@@ -28,6 +28,7 @@ export default function NotificationBell() {
   const { shifts, loading, fetchShifts } = useShiftStore();
   const [open, setOpen] = useState(false);
   const [tomorrowKey, setTomorrowKey] = useState<string | null>(null);
+  const bellRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     void fetchShifts();
@@ -38,6 +39,30 @@ export default function NotificationBell() {
     const timer = window.setInterval(updateTomorrow, 60_000);
     return () => window.clearInterval(timer);
   }, [fetchShifts]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const closeTimer = window.setTimeout(() => setOpen(false), 3_000);
+    const handleOutsidePointer = (event: PointerEvent) => {
+      const target = event.target;
+      if (target instanceof Node && !bellRef.current?.contains(target)) {
+        setOpen(false);
+      }
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", handleOutsidePointer);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.clearTimeout(closeTimer);
+      document.removeEventListener("pointerdown", handleOutsidePointer);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [open]);
 
   const tomorrowShifts = useMemo(() => {
     if (!tomorrowKey) return [];
@@ -51,7 +76,7 @@ export default function NotificationBell() {
   }, [shifts, tomorrowKey]);
 
   return (
-    <div className="relative">
+    <div ref={bellRef} className="relative">
       <button
         type="button"
         aria-label="การแจ้งเตือนเวรพรุ่งนี้"
