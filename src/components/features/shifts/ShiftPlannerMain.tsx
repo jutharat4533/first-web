@@ -41,6 +41,7 @@ export function ShiftPlannerMain() {
   const [selectedHospFilter, setSelectedHospFilter] = useState<number | null>(
     null,
   );
+  const [deletingShiftId, setDeletingShiftId] = useState<number | null>(null);
 
   const monthShifts = useMemo(
     () =>
@@ -98,10 +99,13 @@ export function ShiftPlannerMain() {
   const defaultDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
 
   const handleDelete = async (id: number) => {
+    setDeletingShiftId(id);
     try {
       await deleteShift(id);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "ลบเวรไม่สำเร็จ");
+    } finally {
+      setDeletingShiftId(null);
     }
   };
 
@@ -155,6 +159,7 @@ export function ShiftPlannerMain() {
             setSheet("edit");
           }}
           onDeleteShift={handleDelete}
+          deletingShiftId={deletingShiftId}
         />
       </div>
 

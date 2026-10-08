@@ -1,7 +1,7 @@
 "use client";
 
 import { P, ROSE, STEEL, EGG } from "@/styles/theme";
-import { Plus, Trash2, Edit2, Clock } from "lucide-react";
+import { Loader2, Plus, Trash2, Edit2, Clock } from "lucide-react";
 import { Hospital, ShiftRecord, SLOT_COLOR, SLOT_LABEL } from "@/@types/types";
 
 function formatTimeRange(startIso: string, endIso: string) {
@@ -21,6 +21,7 @@ interface ShiftListProps {
   onAddShift: () => void;
   onEditShift: (shift: ShiftRecord) => void;
   onDeleteShift: (id: number) => void;
+  deletingShiftId: number | null;
 }
 
 export default function ShiftList({
@@ -31,6 +32,7 @@ export default function ShiftList({
   onAddShift,
   onEditShift,
   onDeleteShift,
+  deletingShiftId,
 }: ShiftListProps) {
   const findHospital = (hospitalId: number) =>
     hospitals.find((h) => h.id === hospitalId);
@@ -97,10 +99,15 @@ export default function ShiftList({
                     </button>
                     <button
                       onClick={() => onDeleteShift(s.id)}
+                      disabled={deletingShiftId === s.id}
                       className="p-1.5 rounded-lg"
                       style={{ backgroundColor: ROSE + "15", color: ROSE }}
                     >
-                      <Trash2 size={13} />
+                      {deletingShiftId === s.id ? (
+                        <Loader2 className="animate-spin" size={13} />
+                      ) : (
+                        <Trash2 size={13} />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -167,10 +174,15 @@ export default function ShiftList({
                   </button>
                   <button
                     onClick={() => onDeleteShift(s.id)}
+                    disabled={deletingShiftId === s.id}
                     className="p-1.5 rounded-lg"
                     style={{ backgroundColor: ROSE + "15", color: ROSE }}
                   >
-                    <Trash2 size={12} />
+                    {deletingShiftId === s.id ? (
+                      <Loader2 className="animate-spin" size={12} />
+                    ) : (
+                      <Trash2 size={12} />
+                    )}
                   </button>
                 </div>
               </div>

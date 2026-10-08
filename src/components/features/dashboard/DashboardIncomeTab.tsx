@@ -13,6 +13,7 @@ import {
   ChevronDown,
   ChevronUp,
   TrendingUp,
+  Loader2,
 } from "lucide-react";
 import { P, ROSE, STEEL, EGG, LIME } from "@/styles/theme";
 import {
@@ -65,27 +66,37 @@ export default function DashboardIncomeTab({
   const [editSiId, setEditSiId] = useState<number | null>(null);
   const [editSiName, setEditSiName] = useState("");
   const [editSiAmt, setEditSiAmt] = useState("");
+  const [savingSpecialIncome, setSavingSpecialIncome] = useState(false);
+  const [savingSpecialIncomeId, setSavingSpecialIncomeId] = useState<number | null>(null);
+  const [deletingSpecialIncomeId, setDeletingSpecialIncomeId] = useState<number | null>(null);
+  const [deletingHospitalId, setDeletingHospitalId] = useState<number | null>(null);
 
   const toggleHosp = (id: number) =>
     setExpandedHosps((p) => ({ ...p, [id]: !p[id] }));
 
   const handleDeleteHospital = async (id: number) => {
+    setDeletingHospitalId(id);
     try {
       await deleteHospital(id);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "ลบโรงพยาบาลไม่สำเร็จ",
       );
+    } finally {
+      setDeletingHospitalId(null);
     }
   };
 
   const handleDeleteSpecialIncome = async (id: number) => {
+    setDeletingSpecialIncomeId(id);
     try {
       await deleteSpecialIncome(id);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "ลบรายได้พิเศษไม่สำเร็จ",
       );
+    } finally {
+      setDeletingSpecialIncomeId(null);
     }
   };
 
@@ -186,6 +197,8 @@ export default function DashboardIncomeTab({
                         toast.error(error);
                         return;
                       }
+                      if (savingSpecialIncomeId === si.id) return;
+                      setSavingSpecialIncomeId(si.id);
                       try {
                         await updateSpecialIncome(si.id, {
                           name: editSiName,
@@ -198,12 +211,18 @@ export default function DashboardIncomeTab({
                             ? error.message
                             : "แก้ไขรายได้พิเศษไม่สำเร็จ",
                         );
+                      } finally {
+                        setSavingSpecialIncomeId(null);
                       }
                     }}
                     className="p-1 rounded"
                     style={{ color: STEEL }}
                   >
-                    <Check size={14} />
+                    {savingSpecialIncomeId === si.id ? (
+                      <Loader2 className="animate-spin" size={14} />
+                    ) : (
+                      <Check size={14} />
+                    )}
                   </button>
                   <button
                     onClick={() => setEditSiId(null)}
@@ -237,10 +256,15 @@ export default function DashboardIncomeTab({
                   </button>
                   <button
                     onClick={() => handleDeleteSpecialIncome(si.id)}
+                    disabled={deletingSpecialIncomeId === si.id}
                     className="p-1 rounded"
                     style={{ color: ROSE }}
                   >
-                    <Trash2 size={13} />
+                    {deletingSpecialIncomeId === si.id ? (
+                      <Loader2 className="animate-spin" size={13} />
+                    ) : (
+                      <Trash2 size={13} />
+                    )}
                   </button>
                 </>
               )}
@@ -364,10 +388,15 @@ export default function DashboardIncomeTab({
                     </button>
                     <button
                       onClick={() => handleDeleteHospital(hosp.id)}
+                      disabled={deletingHospitalId === hosp.id}
                       className="flex-1 py-1.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1"
                       style={{ backgroundColor: ROSE + "15", color: ROSE }}
                     >
-                      <Trash2 size={12} />
+                      {deletingHospitalId === hosp.id ? (
+                        <Loader2 className="animate-spin" size={12} />
+                      ) : (
+                        <Trash2 size={12} />
+                      )}
                       ลบ
                     </button>
                   </div>
@@ -481,6 +510,8 @@ export default function DashboardIncomeTab({
                   toast.error(error);
                   return;
                 }
+                if (savingSpecialIncome) return;
+                setSavingSpecialIncome(true);
                 try {
                   await addSpecialIncome({
                     name: siName,
@@ -495,12 +526,16 @@ export default function DashboardIncomeTab({
                       ? error.message
                       : "เพิ่มรายได้พิเศษไม่สำเร็จ",
                   );
+                } finally {
+                  setSavingSpecialIncome(false);
                 }
               }}
-              className="w-full py-3.5 rounded-2xl font-bold text-white text-sm"
-              style={{ backgroundColor: ROSE }}
+              disabled={savingSpecialIncome}
+              className="w-full py-3.5 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2"
+              style={{ backgroundColor: ROSE, opacity: savingSpecialIncome ? 0.6 : 1 }}
             >
-              บันทึก
+              {savingSpecialIncome ? <Loader2 className="animate-spin" size={18} /> : null}
+              {savingSpecialIncome ? "กำลังบันทึก..." : "บันทึก"}
             </button>
           </div>
         </BottomSheet>

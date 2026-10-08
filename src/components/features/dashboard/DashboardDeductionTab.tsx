@@ -29,6 +29,7 @@ export default function DashboardDeductionTab({
   const [dUnit, setDUnit] = useState<"baht" | "percent">("baht");
   const [isSaving, setIsSaving] = useState(false);
   const savingRef = useRef(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const openAddSheet = (hospitalId: number | null) => {
     setAddHospId(hospitalId);
@@ -39,10 +40,13 @@ export default function DashboardDeductionTab({
   };
 
   const handleDelete = async (id: number) => {
+    setDeletingId(id);
     try {
       await deleteDeduction(id);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "ลบรายการหักไม่สำเร็จ");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -116,10 +120,15 @@ export default function DashboardDeductionTab({
                   </div>
                   <button
                     onClick={() => handleDelete(item.id)}
+                    disabled={deletingId === item.id}
                     className="p-1 rounded"
                     style={{ color: ROSE }}
                   >
-                    <Trash2 size={13} />
+                    {deletingId === item.id ? (
+                      <Loader2 className="animate-spin" size={13} />
+                    ) : (
+                      <Trash2 size={13} />
+                    )}
                   </button>
                 </div>
               ))
