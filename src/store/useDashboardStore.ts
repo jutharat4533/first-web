@@ -93,8 +93,11 @@ export const useDashboardStore = create<DashboardState>((set) => ({
       amount: item.amount,
       isPercent: item.unit === "percent",
     });
+    const deduction = fromDeductionApi(created);
     set((state) => ({
-      deductions: [...state.deductions, fromDeductionApi(created)],
+      deductions: state.deductions.some((d) => d.id === deduction.id)
+        ? state.deductions
+        : [...state.deductions, deduction],
     }));
   },
 

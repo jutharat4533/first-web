@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Plus, Minus, Trash2 } from "lucide-react";
 import { P, ROSE, STEEL, EGG } from "@/styles/theme";
@@ -27,6 +27,8 @@ export default function DashboardDeductionTab({
   const [dName, setDName] = useState("");
   const [dAmt, setDAmt] = useState("");
   const [dUnit, setDUnit] = useState<"baht" | "percent">("baht");
+  const [isSaving, setIsSaving] = useState(false);
+  const savingRef = useRef(false);
 
   const openAddSheet = (hospitalId: number | null) => {
     setAddHospId(hospitalId);
@@ -194,6 +196,10 @@ export default function DashboardDeductionTab({
                   return;
                 }
                 if (addHospId === null) return;
+                if (savingRef.current) return;
+
+                savingRef.current = true;
+                setIsSaving(true);
                 try {
                   await addDeduction({
                     hospitalId: addHospId,
@@ -208,12 +214,16 @@ export default function DashboardDeductionTab({
                   toast.error(
                     error instanceof Error ? error.message : "เพิ่มรายการหักไม่สำเร็จ",
                   );
+                } finally {
+                  savingRef.current = false;
+                  setIsSaving(false);
                 }
               }}
+              disabled={isSaving}
               className="w-full py-3.5 rounded-2xl font-bold text-white text-sm"
-              style={{ backgroundColor: ROSE }}
+              style={{ backgroundColor: ROSE, opacity: isSaving ? 0.6 : 1 }}
             >
-              บันทึก
+              {isSaving ? "กำลังบันทึก..." : "บันทึก"}
             </button>
           </div>
         </BottomSheet>
