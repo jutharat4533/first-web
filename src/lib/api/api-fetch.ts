@@ -32,14 +32,26 @@ export async function apiFetch<T>(
     newBody = body;
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
-    ...init,
-    body: newBody,
-    headers: newHeaders,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...init,
+      body: newBody,
+      headers: newHeaders,
+    });
+  } catch {
+    throw new Error(
+      `เชื่อมต่อ API ไม่สำเร็จ กรุณาตรวจสอบ API_URL และ CORS (${API_URL})`,
+    );
+  }
+
   if (!response.ok) {
-    const errorBody = await response.json();
-    throw new ApiError(response.status, errorBody.message);
+    const errorBody = await response.json().catch(() => null);
+    const message =
+      errorBody && typeof errorBody.message === "string"
+        ? errorBody.message
+        : `API request failed (${response.status})`;
+    throw new ApiError(response.status, message);
   }
 
   const text = await response.text();
