@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, Edit2, Loader2, Trash2, X } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { P, ROSE, STEEL } from "@/styles/theme";
 import { Hospital } from "@/@types/types";
 import { useWorkplaceStore } from "@/store/useWorkplaceStore";
-import { validateRequired } from "@/lib/validate-required";
 
 interface ShiftHospitalFilterProps {
   hospitals: Hospital[];
@@ -23,52 +22,23 @@ export default function ShiftHospitalFilter({
   selectedHospitalId,
   onSelect,
 }: ShiftHospitalFilterProps) {
-  const { updateHospital, deleteHospital } = useWorkplaceStore();
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editName, setEditName] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
+  const { deleteHospital } = useWorkplaceStore();
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   if (hospitals.length === 0) return null;
-
-  const startEdit = (h: Hospital) => {
-    setEditingId(h.id);
-    setEditName(h.name);
-  };
-
-  const saveEdit = async (h: Hospital) => {
-    const name = editName.trim();
-    const error = validateRequired({ ชื่อโรงพยาบาล: name.length > 0 });
-    if (error) {
-      toast.error(error);
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      await updateHospital(h.id, {
-        name,
-        baseSalary: h.baseSalary,
-        specialAllowance: h.specialAllowance,
-        shiftCategory: h.shiftCategory,
-        shiftRates: h.shiftRates,
-      });
-      setEditingId(null);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "แก้ไขชื่อ รพ. ไม่สำเร็จ");
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   const handleDelete = async (h: Hospital) => {
     if (!confirm(`ลบ "${h.name}" ออกจากรายการ รพ.? (เวรที่ผูกกับ รพ.นี้จะยังอยู่)`)) {
       return;
     }
+    setDeletingId(h.id);
     try {
       await deleteHospital(h.id);
       if (selectedHospitalId === h.id) onSelect(null);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "ลบ รพ. ไม่สำเร็จ");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -92,43 +62,6 @@ export default function ShiftHospitalFilter({
         {hospitals.map((h) => {
           const active = selectedHospitalId === h.id;
 
-          if (editingId === h.id) {
-            return (
-              <div
-                key={h.id}
-                className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-xl border-2"
-                style={{ borderColor: STEEL }}
-              >
-                <input
-                  autoFocus
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") saveEdit(h);
-                    if (e.key === "Escape") setEditingId(null);
-                  }}
-                  className="w-28 text-xs font-semibold bg-transparent outline-none"
-                  style={{ color: P }}
-                />
-                <button
-                  onClick={() => saveEdit(h)}
-                  disabled={isSaving}
-                  className="p-1 rounded"
-                  style={{ color: STEEL }}
-                >
-                  {isSaving ? <Loader2 className="animate-spin" size={13} /> : <Check size={13} />}
-                </button>
-                <button
-                  onClick={() => setEditingId(null)}
-                  className="p-1 rounded"
-                  style={{ color: "#5a7a99" }}
-                >
-                  <X size={13} />
-                </button>
-              </div>
-            );
-          }
-
           return (
             <div
               key={h.id}
@@ -146,18 +79,16 @@ export default function ShiftHospitalFilter({
                 {h.name} ({shiftCountByHospital(h.id)})
               </button>
               <button
-                onClick={() => startEdit(h)}
-                className="p-1 rounded-lg"
-                style={{ color: active ? "white" : STEEL }}
-              >
-                <Edit2 size={11} />
-              </button>
-              <button
                 onClick={() => handleDelete(h)}
+                disabled={deletingId === h.id}
                 className="p-1 rounded-lg"
                 style={{ color: active ? "white" : ROSE }}
               >
-                <Trash2 size={11} />
+                {deletingId === h.id ? (
+                  <Loader2 className="animate-spin" size={11} />
+                ) : (
+                  <Trash2 size={11} />
+                )}
               </button>
             </div>
           );
