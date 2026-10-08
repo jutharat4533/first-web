@@ -1,7 +1,7 @@
 import { UserApi } from "@/lib/api/user.api";
 import { auth } from "@/lib/auth";
+import NotificationBell from "@/components/layout/NotificationBell";
 import { P, ROSE, STEEL } from "@/styles/theme";
-import { Bell } from "lucide-react";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 
@@ -25,7 +25,7 @@ export default async function Header() {
         </header>
       </div>
       <div className="flex flex-row gap-4 justify-between items-center">
-        <Bell />
+        <NotificationBell />
 
         <div
           className="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg shrink-0"

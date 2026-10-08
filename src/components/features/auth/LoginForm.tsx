@@ -35,7 +35,6 @@ export default function LoginForm() {
   const [show, setShow] = useState(false);
 
   const onSubmit = (data: LoginInput) => {
-    console.log(data);
     startTransition(async () => {
       const { code, message } = await loginAction(data);
       if (code === "INVALID_CREDENTIALS") {

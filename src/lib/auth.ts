@@ -1,6 +1,7 @@
 import Credentials from "next-auth/providers/credentials";
 import { AuthApi } from "./api/auth.api";
 import NextAuth from "next-auth";
+import { ApiError } from "@/lib/api/api-error";
 import { loginSchema } from "@/lib/schemas/auth.schema";
 
 export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
@@ -8,13 +9,20 @@ export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   providers: [
     Credentials({
       async authorize(input) {
-        try {
-          const data = loginSchema.parse(input);
-
-          const { access_token, user } = await AuthApi.login(data);
-          return { ...user, access_token };
-        } catch {
+        const parsed = loginSchema.safeParse(input);
+        if (!parsed.success) {
           return null;
+        }
+
+        try {
+          const { access_token, user } = await AuthApi.login(parsed.data);
+          return { ...user, access_token };
+        } catch (error) {
+          if (error instanceof ApiError && error.statusCode === 401) {
+            return null;
+          }
+
+          throw error;
         }
       },
     }),

@@ -37,7 +37,6 @@ export async function apiFetch<T>(
     body: newBody,
     headers: newHeaders,
   });
-  console.log("response", response);
   if (!response.ok) {
     const errorBody = await response.json();
     throw new ApiError(response.status, errorBody.message);

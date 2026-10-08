@@ -1,7 +1,6 @@
 import "@/styles/globals.css";
 import "@/styles/font.css";
 import { cn } from "@/lib/utils";
-import { notoSans } from "@/styles/font";
 import { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -20,7 +19,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("antialiased", "font-sans", notoSans.variable)}
+      className={cn("antialiased", "font-sans")}
     >
       <body className="">
         {children}
