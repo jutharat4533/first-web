@@ -73,6 +73,21 @@ export function DashboardMain() {
   const totalSpecial = specialIncomes.reduce((a, x) => a + x.amount, 0);
   const totalIncome = baseSalaryTotal + totalShiftIncome + totalSpecial;
 
+  const hospitalIncomeRows = useMemo(
+    () =>
+      hospitals.map((hosp) => {
+        const income = shiftIncomeByHosp.find((item) => item.hosp.id === hosp.id);
+        return (
+          income ?? {
+            hosp,
+            count: 0,
+            total: 0,
+          }
+        );
+      }),
+    [hospitals, shiftIncomeByHosp],
+  );
+
   const deductionsByHosp = useMemo(() => {
     const map: Record<
       number,
@@ -176,7 +191,7 @@ export function DashboardMain() {
           <DashboardIncomeTab
             hospitals={hospitals}
             specialIncomes={specialIncomes}
-            shiftIncomeByHosp={shiftIncomeByHosp}
+            shiftIncomeByHosp={hospitalIncomeRows}
             monthShifts={monthShifts}
             baseSalaryTotal={baseSalaryTotal}
             totalSpecial={totalSpecial}
