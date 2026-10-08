@@ -1,4 +1,5 @@
 import { LIME, P } from "@/styles/theme";
+import logo from "@/app/icon.png";
 import Image from "next/image";
 
 export default function HeaderAuth() {
@@ -9,7 +10,7 @@ export default function HeaderAuth() {
       style={{ background: `linear-gradient(160deg, ${P} 0%, #0d3b6e 100%)` }}
     >
       <Image
-        src="/pic.png"
+        src={logo}
         alt="logo"
         width={70}
         height={70}
