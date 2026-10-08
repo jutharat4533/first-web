@@ -6,6 +6,7 @@ import {
   AlertCircle,
   ChevronRight,
   Edit2,
+  Loader2,
   MapPin,
   Plus,
   Search,
@@ -43,6 +44,7 @@ export default function JobsPageClient({ jobs, isAdmin }: JobsPageClientProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editJob, setEditJob] = useState<JobResponse | null>(null);
   const [applyingId, setApplyingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const filtered = useMemo(
@@ -98,13 +100,18 @@ export default function JobsPageClient({ jobs, isAdmin }: JobsPageClientProps) {
 
   const handleDelete = (job: JobResponse) => {
     if (!confirm(`ลบประกาศงาน "${job.title}"?`)) return;
+    setDeletingId(job.id);
     startTransition(async () => {
-      const result = await removeJobAction(job.id);
-      if (result.success) {
-        toast.success("ลบประกาศงานสำเร็จ");
-        setDetailJob(null);
-      } else {
-        toast.error(result.message);
+      try {
+        const result = await removeJobAction(job.id);
+        if (result.success) {
+          toast.success("ลบประกาศงานสำเร็จ");
+          setDetailJob(null);
+        } else {
+          toast.error(result.message);
+        }
+      } finally {
+        setDeletingId(null);
       }
     });
   };
@@ -262,10 +269,15 @@ export default function JobsPageClient({ jobs, isAdmin }: JobsPageClientProps) {
                         </button>
                         <button
                           onClick={() => handleDelete(job)}
+                          disabled={deletingId === job.id}
                           className="p-2 rounded-xl"
                           style={{ backgroundColor: ROSE + "15", color: ROSE }}
                         >
-                          <Trash2 size={14} />
+                          {deletingId === job.id ? (
+                            <Loader2 className="animate-spin" size={14} />
+                          ) : (
+                            <Trash2 size={14} />
+                          )}
                         </button>
                       </>
                     )}
@@ -291,6 +303,7 @@ export default function JobsPageClient({ jobs, isAdmin }: JobsPageClientProps) {
           onClose={() => setDetailJob(null)}
           onApply={() => handleApply(detailJob)}
           applying={isPending && applyingId === detailJob.id}
+          deleting={deletingId === detailJob.id}
           isAdmin={isAdmin}
           onEdit={() => {
             setEditJob(detailJob);

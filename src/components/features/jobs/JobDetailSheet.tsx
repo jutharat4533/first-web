@@ -20,6 +20,7 @@ interface JobDetailSheetProps {
   onClose: () => void;
   onApply: () => void;
   applying: boolean;
+  deleting?: boolean;
   isAdmin?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
@@ -30,6 +31,7 @@ export default function JobDetailSheet({
   onClose,
   onApply,
   applying,
+  deleting = false,
   isAdmin,
   onEdit,
   onDelete,
@@ -96,11 +98,12 @@ export default function JobDetailSheet({
             </button>
             <button
               onClick={onDelete}
+              disabled={deleting}
               className="flex-1 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"
-              style={{ backgroundColor: ROSE + "15", color: ROSE }}
+              style={{ backgroundColor: ROSE + "15", color: ROSE, opacity: deleting ? 0.6 : 1 }}
             >
-              <Trash2 size={16} />
-              ลบประกาศ
+              {deleting ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
+              {deleting ? "กำลังลบ..." : "ลบประกาศ"}
             </button>
           </div>
         ) : (
