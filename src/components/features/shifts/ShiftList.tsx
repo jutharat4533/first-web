@@ -46,6 +46,7 @@ export default function ShiftList({
           </p>
           <button
             onClick={onAddShift}
+            data-preserve-hospital-filter="true"
             className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl"
             style={{ backgroundColor: ROSE + "15", color: ROSE }}
           >

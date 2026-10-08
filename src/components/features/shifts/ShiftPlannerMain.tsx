@@ -30,6 +30,10 @@ export function ShiftPlannerMain() {
     fetchShifts();
   }, [fetchHospitals, fetchShifts]);
 
+  const [addDefaultHospitalId, setAddDefaultHospitalId] = useState<number | null>(
+    null,
+  );
+
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
@@ -42,6 +46,26 @@ export function ShiftPlannerMain() {
     null,
   );
   const [deletingShiftId, setDeletingShiftId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (selectedHospFilter === null) return;
+
+    const clearFilterWhenClickingElsewhere = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (
+        target.closest("[data-hospital-filter]") ||
+        target.closest("[data-preserve-hospital-filter]")
+      ) {
+        return;
+      }
+      setSelectedHospFilter(null);
+    };
+
+    document.addEventListener("pointerdown", clearFilterWhenClickingElsewhere);
+    return () =>
+      document.removeEventListener("pointerdown", clearFilterWhenClickingElsewhere);
+  }, [selectedHospFilter]);
 
   const monthShifts = useMemo(
     () =>
@@ -98,6 +122,12 @@ export function ShiftPlannerMain() {
 
   const defaultDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
 
+  const openAddShiftSheet = () => {
+    setAddDefaultHospitalId(selectedHospFilter);
+    setSelectedHospFilter(null);
+    setSheet("add");
+  };
+
   const handleDelete = async (id: number) => {
     setDeletingShiftId(id);
     try {
@@ -127,7 +157,7 @@ export function ShiftPlannerMain() {
           onNextMonth={nextMonth}
           onAddShift={() => {
             setSelectedDate(null);
-            setSheet("add");
+            openAddShiftSheet();
           }}
         />
 
@@ -152,7 +182,7 @@ export function ShiftPlannerMain() {
               ? hospitals.find((h) => h.id === selectedHospFilter)?.name
               : undefined
           }
-          onAddShift={() => setSheet("add")}
+          onAddShift={openAddShiftSheet}
           onEditShift={(s) => {
             setEditShiftId(s.id);
             if (!selectedDate) setSelectedDate(s.date);
@@ -167,11 +197,14 @@ export function ShiftPlannerMain() {
         <AddShiftSheet
           date={selectedDate ?? defaultDate}
           hospitals={hospitals}
-          defaultHospitalId={selectedHospFilter}
+          defaultHospitalId={addDefaultHospitalId}
           onSave={(hospId, slot, startTime, endTime) =>
             addShift(hospId, slot, startTime, endTime)
           }
-          onClose={() => setSheet(null)}
+          onClose={() => {
+            setSheet(null);
+            setAddDefaultHospitalId(null);
+          }}
         />
       )}
       {sheet === "edit" && editShiftId && editShift && (

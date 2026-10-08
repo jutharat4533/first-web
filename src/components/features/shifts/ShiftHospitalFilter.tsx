@@ -43,7 +43,7 @@ export default function ShiftHospitalFilter({
   };
 
   return (
-    <div className="px-4 mt-3">
+    <div data-hospital-filter="true" className="px-4 mt-3">
       <p className="text-xs font-semibold mb-2" style={{ color: "#5a7a99" }}>
         กรองตาม รพ.
       </p>

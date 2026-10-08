@@ -62,6 +62,7 @@ export default function ShiftCalendar({
           <h1 className="text-xl font-bold text-white">ปฏิทินตารางเวร</h1>
           <button
             onClick={onAddShift}
+            data-preserve-hospital-filter="true"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-semibold text-xs"
             style={{ backgroundColor: ROSE, color: "white" }}
           >
