@@ -60,6 +60,7 @@ interface AddShiftSheetProps {
   date: string;
   shiftId?: number;
   hospitals: Hospital[];
+  defaultHospitalId?: number | null;
   onSave: (
     hospitalId: number,
     shiftSlot: ShiftSlot,
@@ -79,12 +80,15 @@ export default function AddShiftSheet({
   date,
   shiftId,
   hospitals,
+  defaultHospitalId = null,
   onSave,
   onClose,
   initial,
 }: AddShiftSheetProps) {
   const [selectedHosp, setSelectedHosp] = useState<Hospital | null>(
-    initial?.hospital ?? null,
+    initial?.hospital ??
+      hospitals.find((hospital) => hospital.id === defaultHospitalId) ??
+      null,
   );
   const [selectedSlot, setSelectedSlot] = useState<ShiftSlot | null>(
     initial?.slot ?? null,
@@ -311,7 +315,7 @@ export default function AddShiftSheet({
     >
       <div className="space-y-1">
         <label className="text-xs font-semibold" style={{ color: "#5a7a99" }}>
-          โรงพยาบาล / สถานพยาบาล
+          โรงพยาบาล / สถานพยาบาล /event
         </label>
         <HospComboBox
           value={selectedHosp}

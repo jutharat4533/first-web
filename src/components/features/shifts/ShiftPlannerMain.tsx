@@ -167,6 +167,7 @@ export function ShiftPlannerMain() {
         <AddShiftSheet
           date={selectedDate ?? defaultDate}
           hospitals={hospitals}
+          defaultHospitalId={selectedHospFilter}
           onSave={(hospId, slot, startTime, endTime) =>
             addShift(hospId, slot, startTime, endTime)
           }
