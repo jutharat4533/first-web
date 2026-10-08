@@ -11,6 +11,7 @@ import Legend from "@/components/features/shifts/Legend";
 import { ShiftRecord } from "@/@types/types";
 import { useShiftStore } from "@/store/useShiftStore";
 import { useWorkplaceStore } from "@/store/useWorkplaceStore";
+import LoadingState from "@/components/shared/LoadingState";
 
 function todayString() {
   const today = new Date();
@@ -20,9 +21,9 @@ function todayString() {
 }
 
 export function ShiftPlannerMain() {
-  const { shifts, fetchShifts, addShift, updateShift, deleteShift } =
+  const { shifts, loading: shiftsLoading, fetchShifts, addShift, updateShift, deleteShift } =
     useShiftStore();
-  const { hospitals, fetchHospitals } = useWorkplaceStore();
+  const { hospitals, loading: hospitalsLoading, fetchHospitals } = useWorkplaceStore();
 
   useEffect(() => {
     fetchHospitals();
@@ -106,6 +107,11 @@ export function ShiftPlannerMain() {
 
   return (
     <div className="flex flex-col h-full relative">
+      {(shiftsLoading || hospitalsLoading) && (
+        <div className="absolute inset-0 z-20 flex items-start justify-center bg-slate-50/75 pt-16 backdrop-blur-[1px]">
+          <LoadingState label="กำลังโหลดตารางเวร..." />
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto m-4">
         <ShiftCalendar
           year={year}

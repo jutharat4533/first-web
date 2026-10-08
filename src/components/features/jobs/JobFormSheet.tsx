@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Zap } from "lucide-react";
+import { Check, Loader2, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { P, ROSE } from "@/styles/theme";
 import { JobStatus } from "@/@types/types";
@@ -161,7 +161,7 @@ export default function JobFormSheet({ initial, onSave, onClose }: JobFormSheetP
         className="w-full py-3.5 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-opacity"
         style={{ backgroundColor: ROSE, boxShadow: `0 4px 16px ${ROSE}44`, opacity: isSaving ? 0.6 : 1 }}
       >
-        <Check size={18} />
+        {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
         {isSaving ? "กำลังบันทึก..." : initial ? "บันทึกการแก้ไข" : "ลงประกาศงาน"}
       </button>
     </div>

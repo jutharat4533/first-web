@@ -4,10 +4,11 @@ import { useEffect } from "react";
 import { EGG, P, ROSE, STEEL } from "@/styles/theme";
 import { useWorkplaceStore } from "@/store/useWorkplaceStore";
 import { useShiftStore } from "@/store/useShiftStore";
+import LoadingState from "@/components/shared/LoadingState";
 
 export default function CardList() {
-  const { hospitals, fetchHospitals } = useWorkplaceStore();
-  const { shifts, fetchShifts } = useShiftStore();
+  const { hospitals, loading: hospitalsLoading, fetchHospitals } = useWorkplaceStore();
+  const { shifts, loading: shiftsLoading, fetchShifts } = useShiftStore();
 
   useEffect(() => {
     fetchHospitals();
@@ -25,6 +26,10 @@ export default function CardList() {
     { label: "เวรเดือนนี้", value: shiftsThisMonth, color: ROSE },
     { label: "เวรทั้งหมด", value: shifts.length, color: P },
   ];
+
+  if (hospitalsLoading || shiftsLoading) {
+    return <LoadingState label="กำลังโหลดสรุปข้อมูล..." className="min-h-28" />;
+  }
 
   return (
     <div>

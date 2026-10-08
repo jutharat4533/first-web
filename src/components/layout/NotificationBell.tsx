@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, Loader2 } from "lucide-react";
 import { SLOT_LABEL } from "@/@types/types";
 import { useShiftStore } from "@/store/useShiftStore";
 
@@ -25,7 +25,7 @@ function formatTime(value: string) {
 }
 
 export default function NotificationBell() {
-  const { shifts, fetchShifts } = useShiftStore();
+  const { shifts, loading, fetchShifts } = useShiftStore();
   const [open, setOpen] = useState(false);
   const [tomorrowKey, setTomorrowKey] = useState<string | null>(null);
 
@@ -59,7 +59,7 @@ export default function NotificationBell() {
         onClick={() => setOpen((value) => !value)}
         className="relative flex items-center justify-center rounded-full p-1"
       >
-        <Bell />
+        {loading ? <Loader2 className="animate-spin" /> : <Bell />}
         {tomorrowShifts.length > 0 && (
           <span className="absolute -right-1 -top-1 flex min-w-4 h-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
             {tomorrowShifts.length > 9 ? "9+" : tomorrowShifts.length}

@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { ROSE } from "@/styles/theme";
-import { LogOut } from "lucide-react";
+import { Loader2, LogOut } from "lucide-react";
 import { logoutAction } from "@/lib/actions/auth/auth.action";
 
 export default function LogoutButton() {
@@ -22,7 +22,7 @@ export default function LogoutButton() {
         className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer disabled:opacity-60 hover:text-black hover:text-base"
         style={{ backgroundColor: "#FFF0F3", color: ROSE }}
       >
-        <LogOut size={18} />
+        {isPending ? <Loader2 className="animate-spin" size={18} /> : <LogOut size={18} />}
         {isPending ? "กำลังออกจากระบบ..." : "ออกจากระบบ"}
       </button>
     </div>

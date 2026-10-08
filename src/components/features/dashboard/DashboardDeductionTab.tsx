@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Minus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Minus, Trash2 } from "lucide-react";
 import { P, ROSE, STEEL, EGG } from "@/styles/theme";
 import { Deduction, Hospital } from "@/@types/types";
 import { useDashboardStore } from "@/store/useDashboardStore";
@@ -223,7 +223,7 @@ export default function DashboardDeductionTab({
               className="w-full py-3.5 rounded-2xl font-bold text-white text-sm"
               style={{ backgroundColor: ROSE, opacity: isSaving ? 0.6 : 1 }}
             >
-              {isSaving ? "กำลังบันทึก..." : "บันทึก"}
+              {isSaving ? <Loader2 className="mx-auto animate-spin" size={18} /> : "บันทึก"}
             </button>
           </div>
         </BottomSheet>

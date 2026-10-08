@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Edit2, Check } from "lucide-react";
+import { Edit2, Check, Loader2 } from "lucide-react";
 import { P, ROSE } from "@/styles/theme";
 import { updateProfileAction } from "@/lib/actions/user/user.action";
 import { validateRequired } from "@/lib/validate-required";
@@ -87,7 +87,7 @@ export default function ProfileEditButton({ initial }: ProfileEditButtonProps) {
             className="w-full py-3.5 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-opacity"
             style={{ backgroundColor: ROSE, opacity: isSaving ? 0.6 : 1 }}
           >
-            <Check size={18} />
+            {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
             {isSaving ? "กำลังบันทึก..." : "บันทึก"}
           </button>
         </BottomSheet>

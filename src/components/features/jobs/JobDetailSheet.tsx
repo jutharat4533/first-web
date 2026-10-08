@@ -1,5 +1,5 @@
 import BottomSheet from "./BottomSheet";
-import { Zap, Users, Check, Edit2, Trash2 } from "lucide-react";
+import { Zap, Users, Loader2, Edit2, Trash2 } from "lucide-react";
 import { EGG, LIME, P, ROSE, STEEL } from "@/styles/theme";
 import { JobStatus } from "@/@types/types";
 import { JobResponse } from "@/lib/api/job-types";
@@ -119,7 +119,7 @@ export default function JobDetailSheet({
               "ปิดรับสมัครแล้ว"
             ) : applying ? (
               <>
-                <Check size={18} />
+                <Loader2 className="animate-spin" size={18} />
                 กำลังส่งใบสมัคร...
               </>
             ) : (

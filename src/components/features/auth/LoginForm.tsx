@@ -13,7 +13,7 @@ import { loginAction } from "@/lib/actions/auth/auth.action";
 import { LoginInput, loginSchema } from "@/lib/schemas/auth.schema";
 import { ROSE } from "@/styles/theme";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -129,6 +129,7 @@ export default function LoginForm() {
             style={{ backgroundColor: ROSE }}
             variant="outline"
           >
+            {isPending ? <Loader2 className="animate-spin" size={18} /> : null}
             {isPending ? "Logging you in ..." : "Log in"}
           </Button>
         </Field>

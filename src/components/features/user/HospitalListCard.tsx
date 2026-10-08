@@ -4,9 +4,10 @@ import { useEffect } from "react";
 import { EGG, P, STEEL } from "@/styles/theme";
 import { SHIFT_TYPE_LABEL } from "@/@types/types";
 import { useWorkplaceStore } from "@/store/useWorkplaceStore";
+import LoadingState from "@/components/shared/LoadingState";
 
 export default function HospitalListCard() {
-  const { hospitals, fetchHospitals } = useWorkplaceStore();
+  const { hospitals, loading, fetchHospitals } = useWorkplaceStore();
 
   useEffect(() => {
     fetchHospitals();
@@ -23,7 +24,9 @@ export default function HospitalListCard() {
         </p>
       </div>
       <div className="divide-y" style={{ borderColor: "rgba(3,29,68,0.04)" }}>
-        {hospitals.length === 0 ? (
+        {loading ? (
+          <LoadingState label="กำลังโหลดโรงพยาบาล..." className="min-h-24" />
+        ) : hospitals.length === 0 ? (
           <p className="px-4 py-3 text-xs" style={{ color: "#5a7a99" }}>
             ยังไม่มีข้อมูลโรงพยาบาล
           </p>

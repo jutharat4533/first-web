@@ -9,6 +9,7 @@ import { useShiftStore } from "@/store/useShiftStore";
 import { useWorkplaceStore } from "@/store/useWorkplaceStore";
 import DashboardIncomeTab from "@/components/features/dashboard/DashboardIncomeTab";
 import DashboardDeductionTab from "@/components/features/dashboard/DashboardDeductionTab";
+import LoadingState from "@/components/shared/LoadingState";
 
 const fmt = (n: number) => n.toLocaleString("th-TH", { minimumFractionDigits: 0 });
 
@@ -28,9 +29,10 @@ const THAI_MONTHS = [
 ];
 
 export function DashboardMain() {
-  const { specialIncomes, deductions, fetchDashboardData } = useDashboardStore();
-  const { hospitals, fetchHospitals } = useWorkplaceStore();
-  const { shifts, fetchShifts } = useShiftStore();
+  const { specialIncomes, deductions, loading: dashboardLoading, fetchDashboardData } =
+    useDashboardStore();
+  const { hospitals, loading: hospitalsLoading, fetchHospitals } = useWorkplaceStore();
+  const { shifts, loading: shiftsLoading, fetchShifts } = useShiftStore();
 
   useEffect(() => {
     fetchHospitals();
@@ -110,6 +112,7 @@ export function DashboardMain() {
     0,
   );
   const netIncome = totalIncome - totalDeductions;
+  const isLoading = dashboardLoading || hospitalsLoading || shiftsLoading;
 
   const monthLabel = `${THAI_MONTHS[now.getMonth()]} ${now.getFullYear() + 543}`;
 
@@ -186,7 +189,12 @@ export function DashboardMain() {
       </div>
 
       {/* Content Body */}
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 pb-6">
+      <div className="relative flex-1 overflow-y-auto px-5 py-4 space-y-4 pb-6">
+        {isLoading && (
+          <div className="absolute inset-0 z-20 flex items-start justify-center bg-slate-50/75 pt-16 backdrop-blur-[1px]">
+            <LoadingState label="กำลังโหลดข้อมูลแดชบอร์ด..." />
+          </div>
+        )}
         {tab === "income" && (
           <DashboardIncomeTab
             hospitals={hospitals}

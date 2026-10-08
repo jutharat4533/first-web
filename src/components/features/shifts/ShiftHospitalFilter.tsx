@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, Edit2, Trash2, X } from "lucide-react";
+import { Check, Edit2, Loader2, Trash2, X } from "lucide-react";
 import { P, ROSE, STEEL } from "@/styles/theme";
 import { Hospital } from "@/@types/types";
 import { useWorkplaceStore } from "@/store/useWorkplaceStore";
@@ -116,7 +116,7 @@ export default function ShiftHospitalFilter({
                   className="p-1 rounded"
                   style={{ color: STEEL }}
                 >
-                  <Check size={13} />
+                  {isSaving ? <Loader2 className="animate-spin" size={13} /> : <Check size={13} />}
                 </button>
                 <button
                   onClick={() => setEditingId(null)}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import BottomSheet from "./BottomSheet";
 import HospComboBox from "./HospComboBox";
@@ -296,7 +296,7 @@ export default function AddShiftSheet({
             className="w-full py-3.5 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2 transition-opacity"
             style={{ backgroundColor: ROSE, opacity: isSavingHosp ? 0.6 : 1 }}
           >
-            <Check size={18} />
+            {isSavingHosp ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
             {isSavingHosp ? "กำลังบันทึก..." : "บันทึก รพ."}
           </button>
         </div>
@@ -414,7 +414,7 @@ export default function AddShiftSheet({
           opacity: isSaving ? 0.6 : 1,
         }}
       >
-        <Check size={18} />
+        {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
         {isSaving ? "กำลังบันทึก..." : shiftId ? "บันทึกการแก้ไข" : "เพิ่มเวร"}
       </button>
 
