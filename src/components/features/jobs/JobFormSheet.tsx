@@ -15,7 +15,7 @@ interface JobFormSheetProps {
   onClose: () => void;
 }
 
-export default function JobFormSheet({ initial, onSave, onClose }: JobFormSheetProps) {
+export default function JobFormSheet({ initial, onSave }: JobFormSheetProps) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [location, setLocation] = useState(initial?.location ?? "");
   const [aboutWord, setAboutWord] = useState(initial?.aboutWord ?? "");

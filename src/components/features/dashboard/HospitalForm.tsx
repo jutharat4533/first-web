@@ -2,7 +2,7 @@
 
 import { P, ROSE, STEEL } from "@/styles/theme";
 import React, { useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Hospital,
@@ -203,7 +203,8 @@ export function HospitalForm({ initial, onSave, onClose }: HospitalFormProps) {
           opacity: isSaving ? 0.6 : 1,
         }}
       >
-        <Check size={18} /> {isSaving ? "กำลังบันทึก..." : "บันทึกข้อมูล รพ."}
+        {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
+        {isSaving ? "กำลังบันทึก..." : "บันทึกข้อมูล รพ."}
       </button>
     </>
   );

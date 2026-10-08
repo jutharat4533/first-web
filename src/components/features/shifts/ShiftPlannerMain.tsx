@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { P } from "@/styles/theme";
 import AddShiftSheet from "./AddShiftSheet";
 import ShiftCalendar from "./ShiftCalendar";
 import ShiftHospitalFilter from "./ShiftHospitalFilter";

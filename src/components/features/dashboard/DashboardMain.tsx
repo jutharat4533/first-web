@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
-import { P, ROSE, STEEL, EGG, LIME } from "@/styles/theme";
+import { P, ROSE, STEEL, LIME } from "@/styles/theme";
 import { Deduction, Hospital } from "@/@types/types";
 import { useDashboardStore } from "@/store/useDashboardStore";
 import { useShiftStore } from "@/store/useShiftStore";
@@ -41,7 +41,7 @@ export function DashboardMain() {
   }, [fetchHospitals, fetchShifts, fetchDashboardData]);
 
   const [tab, setTab] = useState<"income" | "deduct">("income");
-  const now = new Date();
+  const now = useMemo(() => new Date(), []);
 
   const monthShifts = useMemo(
     () =>
